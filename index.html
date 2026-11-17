@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Idiom Detective – B2 English Game</title>
+<style>
+:root{--bg:#fff7e0;--card:#ffffff;--ink:#1d2b3a;--mute:#5d6b7a;--a:#2a5cff;--ok:#12a150;--no:#e5383b;--line:#1d2b3a;--sun:#ffc933;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14202e;--card:#1e2f42;--ink:#f4efe0;--mute:#a9b6c4;--a:#7ea0ff;--ok:#3ddc84;--no:#ff6b6e;--line:#f4efe0;--sun:#ffc933}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",Verdana,sans-serif;line-height:1.5;min-height:100vh}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:2rem;line-height:1.1;margin:8px 0 6px}
+p{margin:0 0 12px}
+.mute{color:var(--mute)}
+.card{background:var(--card);border:3px solid var(--line);border-radius:18px;padding:18px;box-shadow:5px 5px 0 var(--line);margin:16px 0}
+.btn{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;font:inherit;font-size:1rem;cursor:pointer}
+.btn:focus-visible{outline:3px solid var(--a);outline-offset:2px}
+.btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn.no{background:var(--no);color:#fff;border-color:var(--no)}
+.go{background:var(--sun);color:#1d2b3a;text-align:center;font-weight:bold;border:3px solid #1d2b3a;box-shadow:3px 3px 0 #1d2b3a}
+.bar{height:10px;background:var(--card);border:2px solid var(--line);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--a);width:0;transition:width .3s}
+.top{display:flex;justify-content:space-between;font-weight:bold;margin:12px 0 6px}
+.idiom{font-family:Georgia,serif;font-size:1.5rem;margin:6px 0 10px}
+.clue{background:var(--bg);border-left:5px solid var(--sun);padding:8px 12px;border-radius:6px}
+.fb{margin-top:10px;font-size:.95rem}
+.big{font-size:3rem;margin:0}
+.hid{display:none}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<section id="start">
+<p class="big">🕵️</p>
+<h1>Idiom Detective</h1>
+<p class="mute">B2 English game: 10 cases. Read the clue, pick the real meaning, and don’t fall for the literal trap!</p>
+<div class="card"><p><b>How to play</b></p><p>You get 10 points for each correct answer and a bonus for a streak. 🏆</p></div>
+<button class="btn go" id="go">Start the investigation</button>
+</section>
+
+<section id="game" class="hid">
+<div class="top"><span id="n">Case 1/10</span><span id="sc">Score: 0</span></div>
+<div class="bar"><i id="bar"></i></div>
+<div class="card">
+<div class="idiom" id="q"></div>
+<div class="clue" id="clue"></div>
+<div id="opts"></div>
+<div class="fb hid" id="fb"></div>
+</div>
+<button class="btn go hid" id="next">Next case</button>
+</section>
+
+<section id="end" class="hid">
+<p class="big" id="em">🏆</p>
+<h1 id="rank"></h1>
+<p id="res"></p>
+<div class="card"><p id="mot" style="font-family:Georgia,serif;font-size:1.2rem;margin:0"></p></div>
+<button class="btn go" id="again">Play again</button>
+</section>
+</main>
+<script>
+var Q=[
+{i:"Break the ice",c:"Two new classmates met on the first day. Someone told a joke and everyone relaxed.",o:["Make people feel less nervous at the start","Destroy something frozen","Stop a fight"],a:0,e:"It means to start a conversation in an awkward situation."},
+{i:"Spill the beans",c:"“I told Anna about the surprise party. Oops!”",o:["Cook for many people","Reveal a secret by accident","Waste food"],a:1,e:"To spill the beans = to tell a secret too early."},
+{i:"Once in a blue moon",c:"“I eat fast food once in a blue moon.”",o:["Every night","Never","Very rarely"],a:2,e:"A blue moon is a rare event, so it means almost never."},
+{i:"Bite the bullet",c:"The dentist appointment was scary, but Ali went anyway.",o:["Accept something unpleasant and do it bravely","Eat something hard","Be very angry"],a:0,e:"You face a hard situation instead of avoiding it."},
+{i:"The ball is in your court",c:"“I’ve made my offer. Now it’s your decision.”",o:["You must play tennis","It is your turn to act","You are in trouble"],a:1,e:"The next move belongs to you."},
+{i:"Hit the books",c:"Exams start on Monday, so Dina stayed home all weekend.",o:["Study hard","Throw books away","Visit a library cafe"],a:0,e:"Hit the books = start studying seriously."},
+{i:"Under the weather",c:"“I’m staying in bed today. I feel a bit…”",o:["Outside in the rain","Slightly ill","Very happy"],a:1,e:"Under the weather = not feeling well."},
+{i:"Cost an arm and a leg",c:"“Those new sneakers cost…”",o:["Very little money","A lot of money","Medical help"],a:1,e:"Something extremely expensive."},
+{i:"A piece of cake",c:"“The B2 listening test? Honestly, it was…”",o:["Very easy","Very sweet","Too small"],a:0,e:"A piece of cake = very easy."},
+{i:"Let the cat out of the bag",c:"Jasur accidentally told everyone the secret plan.",o:["Free a pet","Reveal a secret","Make a big mistake at home"],a:1,e:"Similar to “spill the beans”: you reveal a secret by mistake."}
+];
+var M=["Every expert was once a beginner.","Small steps every day lead to big results.","Mistakes mean you’re learning. Keep going!","Your English today is better than yesterday’s.","Don’t stop when you’re tired. Stop when you’re done.","Fluency is built one word at a time.","You don’t have to be perfect to be understood.","Practice makes progress, not perfection.","The best time to study was yesterday. The next best is now.","Believe you can, and you’re halfway there.","A new language is a new door. Keep opening it!","Consistency beats talent when talent gets lazy.","Today’s effort is tomorrow’s confidence.","Keep calm and learn another word.","Your future self will thank you for studying today.","Every word you learn is a tool you’ll own forever.","Don’t compare your chapter 3 with someone’s chapter 20.","Fall seven times, stand up eight.","Hard work beats easy excuses.","You’re closer to fluent than you think.","Speak first, perfect later.","Curiosity is the engine of learning.","One more page, one more word, one more step.","Great things never come from comfort zones.","Dream in English, and then make it real.","Progress is quiet, but it’s always happening.","You’ve got what it takes. Now use it!","Language is a muscle. Train it daily.","Be proud of how far you’ve come.","Don’t wait for motivation. Build a habit.","Challenges are just lessons in disguise.","The more you read, the more you know.","Listen more, speak more, grow more.","Make today count!","Learning never exhausts the mind.","A little progress each day adds up to big results.","You can’t finish if you never start.","Courage is speaking even when your voice shakes.","Your accent is proof that you speak more than one language.","Fear of mistakes is the only real mistake.","Education is the passport to the future.","Study now, shine later.","Your brain is growing every time you try.","Be the student you wish you had met.","Keep your goals higher than your excuses.","The journey of a thousand words begins with one.","You’re not behind. You’re on your own path.","Success is the sum of small efforts repeated daily.","Never stop learning, because life never stops teaching.","Push yourself, because no one else will do it for you.","Turn “I can’t” into “I’m learning how.”","Words have power. Collect as many as you can.","Every conversation is practice. Say hello!","Winners are just beginners who didn’t quit.","Trust the process, even when it’s slow.","Your effort today writes your story tomorrow.","Smart is good. Persistent is better.","Today is a great day to learn something new.","Keep going. You’re doing better than you think.","Discipline is choosing what you want most over what you want now.","English opens doors around the world. Walk through them!","Learn it, use it, own it.","Great minds never stop asking questions.","If it scares you, it’s probably worth doing.","You’re one idiom away from sounding like a native.","Success speaks the language of hard work.","Don’t just dream it, study it!","Be patient with yourself. Growth takes time.","A confident learner is a successful learner.","Mistakes are proof that you are trying.","The only bad English is the English you never practice.","Level up, one lesson at a time.","Make your future proud!","Stay hungry for knowledge.","You’re building something amazing, word by word.","Energy and persistence conquer all things.","Small habits, big changes.","Your potential is bigger than your doubts.","Be fearless in the pursuit of what sets your soul on fire.","Don’t count the days. Make the days count.","Every day is a fresh start for your English.","Think big, start small, act now.","Hustle for that B2, then aim for C1!","You’re stronger than the grammar rules that scare you.","The secret of getting ahead is getting started.","Learning is a treasure that follows its owner everywhere.","Be bold. Speak up. Be heard.","Keep pushing. Your breakthrough is near.","Practice like you’ve never won. Perform like you’ve never lost.","Your goals don’t care how you feel. Show up anyway.","Sweat now, shine later.","Talk to yourself in English. It counts!","The best way to learn is to enjoy it.","Stay positive, work hard, make it happen.","Every great speaker once stumbled over words.","Don’t quit. The beginning is always the hardest.","Knowledge is power. English is a superpower.","Be the reason someone else says “I can do it too.”","Your dedication is your secret weapon.","Great job today. See you in the next round!","The world is waiting to hear your voice in English."],mb=[];
+function motive(){if(!mb.length){mb=M.map(function(_,i){return i});mb.sort(function(){return Math.random()-.5})}return M[mb.pop()]}
+var k=0,s=0,st=0,lock=false,$=function(x){return document.getElementById(x)};
+function show(id){["start","game","end"].forEach(function(x){$(x).classList.toggle("hid",x!==id)});window.scrollTo(0,0)}
+function shuffle(a){return a.map(function(v){return [Math.random(),v]}).sort(function(x,y){return x[0]-y[0]}).map(function(p){return p[1]})}
+function render(){
+ var q=Q[k];lock=false;
+ $("n").textContent="Case "+(k+1)+"/"+Q.length;$("sc").textContent="Score: "+s;
+ $("bar").style.width=(k/Q.length*100)+"%";
+ $("q").textContent="“"+q.i+"”";$("clue").textContent=q.c;
+ $("fb").classList.add("hid");$("next").classList.add("hid");
+ var box=$("opts");box.innerHTML="";
+ var idx=shuffle(q.o.map(function(_,j){return j}));
+ idx.forEach(function(j){
+  var b=document.createElement("button");b.className="btn";b.textContent=q.o[j];
+  b.onclick=function(){pick(b,j===q.a)};box.appendChild(b);
+ });
+}
+function pick(b,right){
+ if(lock)return;lock=true;var q=Q[k];
+ var all=$("opts").children;
+ for(var i=0;i<all.length;i++){if(all[i].textContent===q.o[q.a])all[i].classList.add("ok")}
+ if(right){st++;s+=10+(st>=3?5:0)}else{st=0;b.classList.add("no")}
+ $("sc").textContent="Score: "+s;
+ var f=$("fb");
+ f.textContent=(right?"✅ Correct! ":"❌ Not quite. ")+q.e+(right&&st>=3?" 🔥 Streak bonus +5!":"");
+ f.classList.remove("hid");
+ $("next").textContent=k===Q.length-1?"See my result":"Next case";
+ $("next").classList.remove("hid");
+}
+$("next").onclick=function(){k++;if(k>=Q.length)finish();else render()};
+function finish(){
+ var m=Q.length*10,r;
+ if(s>=m+10){r=["🏆","Master Detective"]}else if(s>=80){r=["🕵️","Sharp Detective"]}else if(s>=50){r=["🔎","Junior Detective"]}else{r=["🐣","Rookie – try again!"]}
+ $("em").textContent=r[0];$("rank").textContent=r[1];
+ $("res").textContent="Your score: "+s+" points.";$("mot").textContent="💪 "+motive();
+ show("end");
+}
+$("go").onclick=function(){k=0;s=0;st=0;show("game");render()};
+$("again").onclick=function(){k=0;s=0;st=0;Q=shuffle(Q);show("game");render()};
+</script>
+</body>
+</html>
