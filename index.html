@@ -30,20 +30,23 @@ p{margin:0 0 12px}
 .big{font-size:3rem;margin:0}
 .hid{display:none}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.grid{display:grid;gap:10px}.sub{display:block;font-size:.85rem;opacity:.75}.sm{width:auto;display:inline-block;padding:6px 12px;font-size:.9rem;margin:6px 0}
 </style>
 </head>
 <body>
 <main>
-<section id="start">
+<section id="menu">
 <p class="big">🕵️</p>
 <h1>Idiom Detective</h1>
-<p class="mute">B2 English game: 10 cases. Read the clue, pick the real meaning, and don’t fall for the literal trap!</p>
-<div class="card"><p><b>How to play</b></p><p>You get 10 points for each correct answer and a bonus for a streak. 🏆</p></div>
-<button class="btn go" id="go">Start the investigation</button>
+<p class="mute">B2 English game: 10 rounds, 20 questions each, 200 different questions. Pick a round and show what you know!</p>
+<div class="card"><p><b>How to play</b></p><p>10 points for each correct answer, +5 for every answer in a streak of 3 or more. 🏆</p></div>
+<div class="grid" id="grid"></div>
 </section>
 
 <section id="game" class="hid">
-<div class="top"><span id="n">Case 1/10</span><span id="sc">Score: 0</span></div>
+<button class="btn sm" id="quit">← Rounds</button>
+<div class="top"><span id="rt"></span></div>
+<div class="top"><span id="n"></span><span id="sc"></span></div>
 <div class="bar"><i id="bar"></i></div>
 <div class="card">
 <div class="idiom" id="q"></div>
@@ -51,7 +54,7 @@ p{margin:0 0 12px}
 <div id="opts"></div>
 <div class="fb hid" id="fb"></div>
 </div>
-<button class="btn go hid" id="next">Next case</button>
+<button class="btn go hid" id="next">Next</button>
 </section>
 
 <section id="end" class="hid">
@@ -59,62 +62,281 @@ p{margin:0 0 12px}
 <h1 id="rank"></h1>
 <p id="res"></p>
 <div class="card"><p id="mot" style="font-family:Georgia,serif;font-size:1.2rem;margin:0"></p></div>
-<button class="btn go" id="again">Play again</button>
+<button class="btn go" id="nr">Next round</button>
+<button class="btn" id="again">Play this round again</button>
+<button class="btn" id="back">All rounds</button>
 </section>
 </main>
 <script>
-var Q=[
-{i:"Break the ice",c:"Two new classmates met on the first day. Someone told a joke and everyone relaxed.",o:["Make people feel less nervous at the start","Destroy something frozen","Stop a fight"],a:0,e:"It means to start a conversation in an awkward situation."},
-{i:"Spill the beans",c:"“I told Anna about the surprise party. Oops!”",o:["Cook for many people","Reveal a secret by accident","Waste food"],a:1,e:"To spill the beans = to tell a secret too early."},
-{i:"Once in a blue moon",c:"“I eat fast food once in a blue moon.”",o:["Every night","Never","Very rarely"],a:2,e:"A blue moon is a rare event, so it means almost never."},
-{i:"Bite the bullet",c:"The dentist appointment was scary, but Ali went anyway.",o:["Accept something unpleasant and do it bravely","Eat something hard","Be very angry"],a:0,e:"You face a hard situation instead of avoiding it."},
-{i:"The ball is in your court",c:"“I’ve made my offer. Now it’s your decision.”",o:["You must play tennis","It is your turn to act","You are in trouble"],a:1,e:"The next move belongs to you."},
-{i:"Hit the books",c:"Exams start on Monday, so Dina stayed home all weekend.",o:["Study hard","Throw books away","Visit a library cafe"],a:0,e:"Hit the books = start studying seriously."},
-{i:"Under the weather",c:"“I’m staying in bed today. I feel a bit…”",o:["Outside in the rain","Slightly ill","Very happy"],a:1,e:"Under the weather = not feeling well."},
-{i:"Cost an arm and a leg",c:"“Those new sneakers cost…”",o:["Very little money","A lot of money","Medical help"],a:1,e:"Something extremely expensive."},
-{i:"A piece of cake",c:"“The B2 listening test? Honestly, it was…”",o:["Very easy","Very sweet","Too small"],a:0,e:"A piece of cake = very easy."},
-{i:"Let the cat out of the bag",c:"Jasur accidentally told everyone the secret plan.",o:["Free a pet","Reveal a secret","Make a big mistake at home"],a:1,e:"Similar to “spill the beans”: you reveal a secret by mistake."}
+var R=[
+{t:"Everyday Idioms",e:"🧊",m:1,q:[
+["Break the ice","Start a conversation in an awkward situation","Destroy frozen water","Stop an argument"],
+["Spill the beans","Reveal a secret","Cook for guests","Waste food"],
+["Once in a blue moon","Very rarely","Every night","Never"],
+["Bite the bullet","Accept something hard bravely","Eat quickly","Get very angry"],
+["The ball is in your court","It’s your turn to act","You are in trouble","You must play sports"],
+["Hit the books","Study hard","Throw books away","Visit a library"],
+["Under the weather","Slightly ill","Outside in the rain","Very happy"],
+["Cost an arm and a leg","Be very expensive","Be very cheap","Cause an injury"],
+["A piece of cake","Very easy","Very sweet","Too small"],
+["Let the cat out of the bag","Reveal a secret by mistake","Free a pet","Make a mess"],
+["Hit the sack","Go to bed","Start fighting","Go shopping"],
+["Call it a day","Stop working for now","Name a new day","Cancel a holiday"],
+["Cut corners","Do a job badly to save time or money","Turn left quickly","Draw a square"],
+["Face the music","Accept the consequences","Listen to a concert","Sing loudly"],
+["On the fence","Unable to decide","Standing in a garden","Very angry"],
+["Pull someone’s leg","Joke with someone","Hurt someone","Help someone stand"],
+["Add insult to injury","Make a bad situation worse","Say sorry","Heal quickly"],
+["Beat around the bush","Avoid the main point","Walk in a garden","Hit plants"],
+["Burn the midnight oil","Work late into the night","Waste fuel","Light a lamp"],
+["Break a leg","Good luck","Get injured","Run fast"]]},
+{t:"Idioms Level Up",e:"🚀",m:1,q:[
+["Kill two birds with one stone","Solve two problems with one action","Hunt animals","Make a double mistake"],
+["Miss the boat","Lose an opportunity","Be late for a trip","Fall in the water"],
+["Throw in the towel","Give up","Clean up","Start boxing"],
+["Get cold feet","Become nervous before doing something","Feel very cold","Walk barefoot"],
+["Go the extra mile","Make more effort than expected","Travel far","Run a marathon"],
+["In hot water","In trouble","Having a bath","Very excited"],
+["Jump the gun","Act too soon","Start a race well","Fire a weapon"],
+["Keep an eye on","Watch carefully","Lose sight of","Close your eyes"],
+["Let sleeping dogs lie","Avoid disturbing a situation","Be kind to pets","Sleep deeply"],
+["On cloud nine","Extremely happy","Very high up","Sad and lonely"],
+["Pull yourself together","Calm down and control yourself","Fix a machine","Join a group"],
+["Rain on someone’s parade","Spoil someone’s plans","Cancel a festival","Bring an umbrella"],
+["See eye to eye","Agree completely","Look at each other","Be the same height"],
+["Steal the show","Get all the attention","Rob a theatre","Leave a play early"],
+["The last straw","The final problem that ends your patience","The best choice","A drinking tool"],
+["Through thick and thin","In good times and bad","Very slowly","In the forest"],
+["Back to square one","Start again from the beginning","Return home","Win a game"],
+["Barking up the wrong tree","Following a wrong idea","Talking to dogs","Climbing high"],
+["Play devil’s advocate","Argue the opposite to test an idea","Act evil","Defend a friend"],
+["Hang in there","Don’t give up","Wait at home","Hold a rope"]]},
+{t:"Phrasal Verbs I",e:"🧩",q:[
+["She ___ smoking last year.","gave up","gave in","gave off"],
+["It’s too quiet. Please ___ the volume.","turn up","turn into","turn over"],
+["We ran ___ milk, so I went shopping.","out of","away from","into"],
+["I’m ___ forward to seeing you.","looking","watching","seeing"],
+["The match was ___ because of the storm.","called off","called up","called in"],
+["He ___ his grandmother; they have the same eyes.","takes after","takes off","takes over"],
+["He decided to ___ a new hobby: painting.","take up","take in","take off"],
+["I can’t ___ this noise any longer.","put up with","put on with","put off with"],
+["She ___ the job offer because the salary was low.","turned down","turned up","turned on"],
+["The plane ___ at 6 a.m.","took off","took in","took after"],
+["We need to ___ a solution to this problem.","come up with","come across with","come down with"],
+["I ___ my old friend at the mall by chance.","ran into","ran out","ran over"],
+["I’ll ___ you off at school on my way.","drop","fall","pull"],
+["He ___ the flu after the trip.","came down with","came up with","came across"],
+["The car ___ on the highway, so we called a mechanic.","broke down","broke up","broke in"],
+["She ___ three kids alone.","brought up","brought in","brought out"],
+["Please ___ the form and sign it.","fill in","fill with","fill over"],
+["I’ll ___ you at the station at 8.","pick up","pick on","pick out"],
+["They ___ a new business last year.","set up","set off","set down"],
+["We’ll ___ the plan again tomorrow.","go over","go off","go out"]]},
+{t:"Phrasal Verbs II",e:"🔧",q:[
+["The alarm ___ at 6 a.m. every day.","goes off","goes on","goes up"],
+["I can’t ___ what he said; it was too quiet.","make out","make up","make for"],
+["Let’s ___ the meeting until next week.","put off","put on","put out"],
+["She ___ the stairs and broke her leg.","fell down","fell for","fell out"],
+["They had a fight and ___ last month.","broke up","broke in","broke out of"],
+["A fire ___ in the kitchen at midnight.","broke out","broke up","broke off"],
+["I need to ___ on my English before the exam.","brush up","brush off","brush in"],
+["Can you ___ my cat this weekend?","look after","look into","look up"],
+["The police are ___ the case.","looking into","looking after","looking up"],
+["I ___ this word in the dictionary.","looked up","looked after","looked into"],
+["The deal ___ because of a lack of money.","fell through","fell over","fell off"],
+["He ___ at the party; nobody expected him.","showed up","showed off","showed in"],
+["He loves to ___ his new phone.","show off","show up","show in"],
+["I can’t ___ why she left so suddenly.","figure out","figure in","figure up"],
+["She ___ the course because it was too hard.","dropped out of","dropped in","dropped off"],
+["Please ___ the lights when you leave.","switch off","switch up","switch in"],
+["I ___ my ex at the supermarket. Awkward!","bumped into","bumped up","bumped off"],
+["Prices have ___ by 20% this year.","gone up","gone out","gone off"],
+["I’m trying to cut ___ on sugar.","down","off","up"],
+["They ___ the old building to build a mall.","pulled down","pulled up","pulled in"]]},
+{t:"Collocations",e:"🔗",q:[
+["I need to ___ a decision soon.","make","do","take"],
+["Can you ___ me a favour?","do","make","take"],
+["Let’s ___ a break.","take","make","do"],
+["She ___ her homework every evening.","does","makes","takes"],
+["They ___ a huge mistake.","made","did","took"],
+["We should ___ a look at this plan.","have","make","do"],
+["He ___ a lot of money last year.","made","did","had"],
+["Can you ___ a photo of us?","take","make","do"],
+["She ___ a lot of effort into the project.","put","did","made"],
+["Don’t ___ noise; the baby is sleeping.","make","do","take"],
+["It’s time to ___ attention to the teacher.","pay","make","take"],
+["I couldn’t ___ any sleep last night.","get","take","make"],
+["He ___ a promise to call.","made","did","had"],
+["They ___ business with Japan.","do","make","take"],
+["Please ___ care of yourself.","take","make","do"],
+["Let’s ___ a deal.","make","do","take"],
+["I always ___ my best.","do","make","take"],
+["He ___ a good impression on the manager.","made","did","took"],
+["We ___ a great time at the festival.","had","made","did"],
+["She ___ a lot of progress this year.","made","did","took"]]},
+{t:"Confusing Words",e:"🤔",q:[
+["The weather will ___ your mood.","affect","effect","infect"],
+["What’s the ___ of this medicine?","effect","affect","defect"],
+["I need some ___ about the course.","information","informations","informing"],
+["Can you give me some ___?","advice","advices","advise"],
+["She ___ me to stay home.","advised","adviced","advice"],
+["Can I ___ your pen?","borrow","lend","loan"],
+["Could you ___ me your notes?","lend","borrow","rent"],
+["I’m ___ in learning Spanish.","interested","interesting","interest"],
+["The film was really ___.","boring","bored","bore"],
+["He is ___ than his brother.","taller","more tall","tallest"],
+["There’s ___ milk left.","little","few","many"],
+["There are ___ chairs in the room.","few","little","much"],
+["I haven’t seen him ___ Monday.","since","for","from"],
+["I’ve lived here ___ ten years.","for","since","from"],
+["The doctor ___ me to rest.","told","said","spoke"],
+["She ___ she was tired.","said","told","talked"],
+["He ___ his keys on the table yesterday.","left","forgot","missed"],
+["Buying in bulk is more ___.","economical","economic","economy"],
+["Don’t be so ___; it was only a joke.","sensitive","sensible","sensual"],
+["She made a ___ choice and saved money.","sensible","sensitive","sensational"]]},
+{t:"Prepositions",e:"📍",q:[
+["I’m afraid ___ spiders.","of","from","at"],
+["She’s good ___ maths.","at","in","on"],
+["He’s married ___ a doctor.","to","with","by"],
+["We arrived ___ the airport at noon.","at","to","into"],
+["She arrived ___ Tashkent yesterday.","in","at","to"],
+["I’m interested ___ music.","in","on","at"],
+["It depends ___ the weather.","on","of","from"],
+["She’s proud ___ her son.","of","for","about"],
+["I’m fond ___ chocolate.","of","for","with"],
+["This is different ___ that.","from","of","with"],
+["He’s responsible ___ the project.","for","of","to"],
+["She apologised ___ being late.","for","of","about"],
+["We’re looking ___ a flat.","for","on","at"],
+["He’s keen ___ football.","on","to","for"],
+["I’m tired ___ waiting.","of","for","with"],
+["She’s similar ___ her mother.","to","with","as"],
+["Thanks ___ your help.","for","of","to"],
+["We succeeded ___ finishing on time.","in","at","on"],
+["He insisted ___ paying.","on","for","to"],
+["I’m worried ___ the exam.","about","for","of"]]},
+{t:"B2 Vocabulary",e:"📚",m:1,q:[
+["Reluctant","Unwilling","Eager","Proud"],
+["Plenty","A lot","A little","None"],
+["Brief","Short","Boring","Careful"],
+["Vital","Extremely important","Optional","Dangerous"],
+["Hesitate","Pause before acting","Rush forward","Refuse politely"],
+["Ambitious","Eager to succeed","Very lazy","Easily scared"],
+["Genuine","Real","Fake","Cheap"],
+["Rare","Not common","Very old","Popular"],
+["Enormous","Very big","Quite small","Very fast"],
+["Tend to","Usually do","Refuse to do","Forget to do"],
+["Obvious","Easy to see","Hidden","Complicated"],
+["Fluent","Speaking smoothly","Speaking loudly","Speaking rarely"],
+["Fragile","Easily broken","Very strong","Heavy"],
+["Overcome","Succeed in dealing with","Forget","Avoid"],
+["Prevent","Stop from happening","Allow","Repeat"],
+["Despite","In spite of","Because of","Instead of"],
+["Boost","Increase","Decrease","Cancel"],
+["Struggle","Try hard with difficulty","Win easily","Refuse"],
+["Thrilled","Very excited","Very tired","Very angry"],
+["Efficient","Working well without waste","Very expensive","Slow but careful"]]},
+{t:"Proverbs",e:"📜",m:1,q:[
+["Don’t count your chickens before they hatch.","Don’t assume success too early","Look after your animals","Don’t waste eggs"],
+["Actions speak louder than words.","What you do matters more than what you say","Shout to be heard","Silence is rude"],
+["A friend in need is a friend indeed.","A true friend helps in hard times","Friends are expensive","Needy people are friends"],
+["Don’t judge a book by its cover.","Don’t judge people by appearance","Read before buying","Covers are important"],
+["Practice makes perfect.","Repeating something improves it","Perfect people never practise","Practice is boring"],
+["The early bird catches the worm.","Those who start early succeed","Birds eat at night","Worms wake up early"],
+["Every cloud has a silver lining.","Bad situations have good sides","Silver is valuable","It always rains"],
+["Look before you leap.","Think before acting","Jump high","Watch your step"],
+["Too many cooks spoil the broth.","Too many people ruin a task","Soup needs many cooks","Cooking is hard"],
+["When in Rome, do as the Romans do.","Follow local customs","Visit Rome often","Travel by Roman roads"],
+["Better safe than sorry.","Be careful to avoid regret","Safety is boring","Apologise often"],
+["Two heads are better than one.","Working together gives better ideas","Big heads are clever","Be alone to think"],
+["The grass is always greener on the other side.","Other people’s lives seem better","Gardens need water","Neighbours are rich"],
+["All that glitters is not gold.","Not everything attractive is valuable","Gold is shiny","Never trust jewellery"],
+["Rome wasn’t built in a day.","Great things take time","Builders were lazy","Rome is old"],
+["You can’t have your cake and eat it too.","You can’t have both options","Cake is unhealthy","Share your food"],
+["Birds of a feather flock together.","Similar people stay together","Birds travel in winter","Feathers are light"],
+["A picture is worth a thousand words.","An image explains a lot","Pictures are expensive","Words are useless"],
+["Easy come, easy go.","What’s gained easily is lost easily","Travel is simple","Life is short"],
+["Curiosity killed the cat.","Being too curious can cause trouble","Cats hate questions","Pets are dangerous"]]},
+{t:"Grammar Traps",e:"🪤",q:[
+["If I ___ rich, I would travel the world.","were","am","will be"],
+["If it rains tomorrow, we ___ at home.","will stay","would stay","stayed"],
+["She suggested ___ to the cinema.","going","to go","go"],
+["I wish I ___ more time.","had","have","would have"],
+["By next year, I ___ here for ten years.","will have lived","will live","have lived"],
+["He asked me where I ___ the day before.","had been","have been","am"],
+["I’m used to ___ early.","getting up","get up","got up"],
+["The lights are on, so she ___ be at home.","must","can’t","needn’t"],
+["You ___ wear a seatbelt; it’s the law.","must","might","needn’t"],
+["He ___ to the gym since January.","has been going","is going","goes"],
+["The report ___ by the manager yesterday.","was written","wrote","has written"],
+["She’s the girl ___ brother is a pilot.","whose","who","which"],
+["The man ___ called you is my uncle.","who","whose","whom"],
+["Neither of them ___ the answer.","knows","know","are knowing"],
+["I’ve never ___ sushi before.","eaten","ate","eat"],
+["Hardly ___ I arrived when it started raining.","had","have","did"],
+["Not only ___ late, but he also forgot the tickets.","was he","he was","is he"],
+["You ___ have seen him; he was in Paris.","can’t","shouldn’t","needn’t"],
+["It’s time we ___ home.","went","go","going"],
+["If I had studied harder, I ___ the exam.","would have passed","will pass","would pass"]]}
 ];
 var M=["Every expert was once a beginner.","Small steps every day lead to big results.","Mistakes mean you’re learning. Keep going!","Your English today is better than yesterday’s.","Don’t stop when you’re tired. Stop when you’re done.","Fluency is built one word at a time.","You don’t have to be perfect to be understood.","Practice makes progress, not perfection.","The best time to study was yesterday. The next best is now.","Believe you can, and you’re halfway there.","A new language is a new door. Keep opening it!","Consistency beats talent when talent gets lazy.","Today’s effort is tomorrow’s confidence.","Keep calm and learn another word.","Your future self will thank you for studying today.","Every word you learn is a tool you’ll own forever.","Don’t compare your chapter 3 with someone’s chapter 20.","Fall seven times, stand up eight.","Hard work beats easy excuses.","You’re closer to fluent than you think.","Speak first, perfect later.","Curiosity is the engine of learning.","One more page, one more word, one more step.","Great things never come from comfort zones.","Dream in English, and then make it real.","Progress is quiet, but it’s always happening.","You’ve got what it takes. Now use it!","Language is a muscle. Train it daily.","Be proud of how far you’ve come.","Don’t wait for motivation. Build a habit.","Challenges are just lessons in disguise.","The more you read, the more you know.","Listen more, speak more, grow more.","Make today count!","Learning never exhausts the mind.","A little progress each day adds up to big results.","You can’t finish if you never start.","Courage is speaking even when your voice shakes.","Your accent is proof that you speak more than one language.","Fear of mistakes is the only real mistake.","Education is the passport to the future.","Study now, shine later.","Your brain is growing every time you try.","Be the student you wish you had met.","Keep your goals higher than your excuses.","The journey of a thousand words begins with one.","You’re not behind. You’re on your own path.","Success is the sum of small efforts repeated daily.","Never stop learning, because life never stops teaching.","Push yourself, because no one else will do it for you.","Turn “I can’t” into “I’m learning how.”","Words have power. Collect as many as you can.","Every conversation is practice. Say hello!","Winners are just beginners who didn’t quit.","Trust the process, even when it’s slow.","Your effort today writes your story tomorrow.","Smart is good. Persistent is better.","Today is a great day to learn something new.","Keep going. You’re doing better than you think.","Discipline is choosing what you want most over what you want now.","English opens doors around the world. Walk through them!","Learn it, use it, own it.","Great minds never stop asking questions.","If it scares you, it’s probably worth doing.","You’re one idiom away from sounding like a native.","Success speaks the language of hard work.","Don’t just dream it, study it!","Be patient with yourself. Growth takes time.","A confident learner is a successful learner.","Mistakes are proof that you are trying.","The only bad English is the English you never practice.","Level up, one lesson at a time.","Make your future proud!","Stay hungry for knowledge.","You’re building something amazing, word by word.","Energy and persistence conquer all things.","Small habits, big changes.","Your potential is bigger than your doubts.","Be fearless in the pursuit of what sets your soul on fire.","Don’t count the days. Make the days count.","Every day is a fresh start for your English.","Think big, start small, act now.","Hustle for that B2, then aim for C1!","You’re stronger than the grammar rules that scare you.","The secret of getting ahead is getting started.","Learning is a treasure that follows its owner everywhere.","Be bold. Speak up. Be heard.","Keep pushing. Your breakthrough is near.","Practice like you’ve never won. Perform like you’ve never lost.","Your goals don’t care how you feel. Show up anyway.","Sweat now, shine later.","Talk to yourself in English. It counts!","The best way to learn is to enjoy it.","Stay positive, work hard, make it happen.","Every great speaker once stumbled over words.","Don’t quit. The beginning is always the hardest.","Knowledge is power. English is a superpower.","Be the reason someone else says “I can do it too.”","Your dedication is your secret weapon.","Great job today. See you in the next round!","The world is waiting to hear your voice in English."],mb=[];
-function motive(){if(!mb.length){mb=M.map(function(_,i){return i});mb.sort(function(){return Math.random()-.5})}return M[mb.pop()]}
-var k=0,s=0,st=0,lock=false,$=function(x){return document.getElementById(x)};
-function show(id){["start","game","end"].forEach(function(x){$(x).classList.toggle("hid",x!==id)});window.scrollTo(0,0)}
+
+var cur=0,k=0,s=0,st=0,ok=0,lock=false,Q=[],best={};
+try{best=JSON.parse(localStorage.getItem("idb")||"{}")}catch(e){best={}}
+var $=function(x){return document.getElementById(x)};
+function show(id){["menu","game","end"].forEach(function(x){$(x).classList.toggle("hid",x!==id)});window.scrollTo(0,0)}
 function shuffle(a){return a.map(function(v){return [Math.random(),v]}).sort(function(x,y){return x[0]-y[0]}).map(function(p){return p[1]})}
+function motive(){if(!mb.length){mb=M.map(function(_,i){return i});mb.sort(function(){return Math.random()-.5})}return M[mb.pop()]}
+function menu(){
+ var g=$("grid");g.innerHTML="";
+ R.forEach(function(r,i){
+  var b=document.createElement("button");b.className="btn";
+  b.innerHTML=r.e+" Round "+(i+1)+": "+r.t+'<span class="sub">'+(best[i]!=null?"Best: "+best[i]+"/20":"20 questions")+"</span>";
+  b.onclick=function(){start(i)};g.appendChild(b);
+ });
+ show("menu");
+}
+function start(i){cur=i;Q=shuffle(R[i].q);k=0;s=0;st=0;ok=0;show("game");render()}
 function render(){
- var q=Q[k];lock=false;
- $("n").textContent="Case "+(k+1)+"/"+Q.length;$("sc").textContent="Score: "+s;
- $("bar").style.width=(k/Q.length*100)+"%";
- $("q").textContent="“"+q.i+"”";$("clue").textContent=q.c;
+ var q=Q[k],r=R[cur];lock=false;
+ $("rt").textContent=r.e+" Round "+(cur+1)+": "+r.t;
+ $("n").textContent="Question "+(k+1)+"/20";$("sc").textContent="Score: "+s;
+ $("bar").style.width=(k/20*100)+"%";
+ $("q").textContent=r.m?"“"+q[0]+"”":q[0];
+ $("clue").textContent=r.m?"What does it mean?":"Choose the correct option.";
  $("fb").classList.add("hid");$("next").classList.add("hid");
  var box=$("opts");box.innerHTML="";
- var idx=shuffle(q.o.map(function(_,j){return j}));
- idx.forEach(function(j){
-  var b=document.createElement("button");b.className="btn";b.textContent=q.o[j];
-  b.onclick=function(){pick(b,j===q.a)};box.appendChild(b);
+ shuffle([[q[1],1],[q[2],0],[q[3],0]]).forEach(function(o){
+  var b=document.createElement("button");b.className="btn";b.textContent=o[0];
+  b.onclick=function(){pick(b,o[1])};box.appendChild(b);
  });
 }
 function pick(b,right){
  if(lock)return;lock=true;var q=Q[k];
  var all=$("opts").children;
- for(var i=0;i<all.length;i++){if(all[i].textContent===q.o[q.a])all[i].classList.add("ok")}
- if(right){st++;s+=10+(st>=3?5:0)}else{st=0;b.classList.add("no")}
+ for(var i=0;i<all.length;i++){if(all[i].textContent===q[1])all[i].classList.add("ok")}
+ if(right){ok++;st++;s+=10+(st>=3?5:0)}else{st=0;b.classList.add("no")}
  $("sc").textContent="Score: "+s;
- var f=$("fb");
- f.textContent=(right?"✅ Correct! ":"❌ Not quite. ")+q.e+(right&&st>=3?" 🔥 Streak bonus +5!":"");
- f.classList.remove("hid");
- $("next").textContent=k===Q.length-1?"See my result":"Next case";
+ $("fb").textContent=right?"✅ Correct!"+(st>=3?" 🔥 Streak bonus +5!":""):"❌ Not quite. Answer: "+q[1];
+ $("fb").classList.remove("hid");
+ $("next").textContent=k===19?"See my result":"Next";
  $("next").classList.remove("hid");
 }
-$("next").onclick=function(){k++;if(k>=Q.length)finish();else render()};
+$("next").onclick=function(){k++;if(k>=20)finish();else render()};
 function finish(){
- var m=Q.length*10,r;
- if(s>=m+10){r=["🏆","Master Detective"]}else if(s>=80){r=["🕵️","Sharp Detective"]}else if(s>=50){r=["🔎","Junior Detective"]}else{r=["🐣","Rookie – try again!"]}
+ var r=ok>=19?["🏆","Master Detective"]:ok>=15?["🕵️","Sharp Detective"]:ok>=10?["🔎","Junior Detective"]:["🐣","Rookie – try again!"];
+ if(best[cur]==null||ok>best[cur]){best[cur]=ok;try{localStorage.setItem("idb",JSON.stringify(best))}catch(e){}}
  $("em").textContent=r[0];$("rank").textContent=r[1];
- $("res").textContent="Your score: "+s+" points.";$("mot").textContent="💪 "+motive();
+ $("res").textContent="Round "+(cur+1)+": "+ok+"/20 correct, "+s+" points.";
+ $("mot").textContent="💪 "+motive();
+ $("nr").classList.toggle("hid",cur>=R.length-1);
  show("end");
 }
-$("go").onclick=function(){k=0;s=0;st=0;show("game");render()};
-$("again").onclick=function(){k=0;s=0;st=0;Q=shuffle(Q);show("game");render()};
+$("nr").onclick=function(){start(cur+1)};
+$("again").onclick=function(){start(cur)};
+$("back").onclick=menu;$("quit").onclick=menu;
+menu();
 </script>
 </body>
 </html>
